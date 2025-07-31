@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salesforce Sales Cloud B2B Data Model - Interactive ERD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+        }
+
+        .nav-menu {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            text-decoration: none;
+            color: #667eea;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover, .nav-menu a.active {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .object-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .object-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .object-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .object-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .object-card .api-name {
+            background: #f8f9ff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .field-list {
+            margin-top: 15px;
+        }
+
+        .field-list h4 {
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .field-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .mandatory-field {
+            background: #e74c3c;
+        }
+
+        .erd-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .erd-svg {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .relationship-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-line {
+            width: 30px;
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        .lookup { background: #3498db; }
+        .master-detail { background: #e74c3c; }
+        .many-to-many { background: #f39c12; }
+        .converts-to { background: #2ecc71; }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .relationship-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .relationship-table th,
+        .relationship-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .relationship-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .relationship-table tr:hover {
+            background: #f8f9ff;
+        }
+
+        .process-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .process-step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f0ff 100%);
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .arrow-down {
+            text-align: center;
+            color: #667eea;
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: relative;
+            }
+            
+            .object-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: #764ba2;
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="color: #667eea; margin-bottom: 20px;">📊 Navigation</h2>
+            
+            <input type="text" class="search-box" id="searchBox" placeholder="Search objects, fields, or relationships...">
+            
+            <ul class="nav-menu">
+                <li><a href="#" onclick="showSection('overview')" class="active">🏠 Overview</a></li>
+                <li><a href="#" onclick="showSection('objects')">📦 Objects & Fields</a></li>
+                <li><a href="#" onclick="showSection('erd')">🔗 ERD Diagram</a></li>
+                <li><a href="#" onclick="showSection('relationships')">🔄 Relationships</a></li>
+                <li><a href="#" onclick="showSection('process')">⚡ B2B Sales Process</a></li>
+                <li><a href="#" onclick="showSection('notes')">📝 Architecture Notes</a></li>
+            </ul>
+
+            <div class="card">
+                <h3>🎯 Quick Stats</h3>
+                <p><strong>Total Objects:</strong> 12</p>
+                <p><strong>Relationships:</strong> 22</p>
+                <p><strong>Mandatory Fields:</strong> 19</p>
+                <p><strong>Last Updated:</strong> July 2025</p>
+            </div>
+
+            <div class="card">
+                <h3>🔧 System Architect Tools</h3>
+                <p><small>Interactive ERD visualization designed for system architects to understand and share Salesforce B2B Sales Cloud data model relationships.</small></p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1>🏢 Salesforce Sales Cloud B2B Data Model</h1>
+                <p>Interactive Entity Relationship Diagram & Architecture Guide</p>
+            </div>
+
+            <!-- Overview Section -->
+            <div id="overview" class="section active">
+                <div class="card">
+                    <h2>📋 Executive Summary</h2>
+                    <p>This interactive guide presents the comprehensive Salesforce Sales Cloud data model specifically designed for B2B sales processes. The model centers around core objects that support the entire customer lifecycle from lead generation to opportunity closure.</p>
+                    
+                    <h3 style="margin-top: 20px;">🎯 Key Business Objects</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                        <div style="background: #f8f9ff; padding: 15px; border-radius: 8px;">
+                            <strong>🎣 Lead Management</strong><br>
+                            <small>Capture and qualify potential customers</small>
+                        </div>
+                        <div style="background: #f8f9ff; padding: 15px; border-radius: 8px;">
+                            <strong>🏢 Account & Contact</strong><br>
+                            <small>Manage business relationships</small>
+                        </div>
+                        <div style="background: #f8f9ff; padding: 15px; border-radius: 8px;">
+                            <strong>💼 Opportunity Tracking</strong><br>
+                            <small>Pipeline and deal management</small>
+                        </div>
+                        <div style="background: #f8f9ff; padding: 15px; border-radius: 8px;">
+                            <strong>📦 Product & Pricing</strong><br>
+                            <small>Catalog and price book management</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🔄 B2B Sales Flow Overview</h2>
+                    <p>The B2B sales process in Salesforce follows a structured approach:</p>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <div class="step-number">1</div>
+                            <div>
+                                <strong>Lead Generation</strong><br>
+                                <small>Potential customers enter as Lead records with basic qualification information</small>
+                            </div>
+                        </div>
+                        <div class="arrow-down">↓</div>
+                        <div class="process-step">
+                            <div class="step-number">2</div>
+                            <div>
+                                <strong>Lead Qualification</strong><br>
+                                <small>Sales team qualifies leads and determines readiness for conversion</small>
+                            </div>
+                        </div>
+                        <div class="arrow-down">↓</div>
+                        <div class="process-step">
+                            <div class="step-number">3</div>
+                            <div>
+                                <strong>Lead Conversion</strong><br>
+                                <small>Qualified leads convert to Account, Contact, and Opportunity records</small>
+                            </div>
+                        </div>
+                        <div class="arrow-down">↓</div>
+                        <div class="process-step">
+                            <div class="step-number">4</div>
+                            <div>
+                                <strong>Opportunity Management</strong><br>
+                                <small>Track deals through sales stages with products, pricing, and activities</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objects Section -->
+            <div id="objects" class="section">
+                <div class="card">
+                    <h2>📦 Core Objects & Mandatory Fields</h2>
+                    <p>Each object represents a specific business entity with mandatory fields ensuring data integrity:</p>
+                </div>
+
+                <div class="object-grid" id="objectGrid">
+                    <!-- Objects will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- ERD Section -->
+            <div id="erd" class="section">
+                <div class="card">
+                    <h2>🔗 Entity Relationship Diagram</h2>
+                    
+                    <div class="relationship-legend">
+                        <div class="legend-item">
+                            <div class="legend-line lookup"></div>
+                            <span>Lookup Relationship</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line master-detail"></div>
+                            <span>Master-Detail</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line many-to-many"></div>
+                            <span>Many-to-Many</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-line converts-to"></div>
+                            <span>Conversion Flow</span>
+                        </div>
+                    </div>
+
+                    <div class="erd-container">
+                        <svg class="erd-svg" id="erdSvg">
+                            <!-- ERD will be drawn here by JavaScript -->
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Relationships Section -->
+            <div id="relationships" class="section">
+                <div class="card">
+                    <h2>🔄 Object Relationships</h2>
+                    <p>Comprehensive mapping of all relationships between Salesforce objects:</p>
+                    
+                    <table class="relationship-table" id="relationshipTable">
+                        <thead>
+                            <tr>
+                                <th>From Object</th>
+                                <th>To Object</th>
+                                <th>Relationship Type</th>
+                                <th>Cardinality</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Process Section -->
+            <div id="process" class="section">
+                <div class="card">
+                    <h2>⚡ B2B Sales Process Details</h2>
+                    
+                    <h3>🎯 Lead Management Process</h3>
+                    <p>B2B lead management focuses on qualification and conversion:</p>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Lead Capture:</strong> Marketing campaigns, web forms, trade shows</li>
+                        <li><strong>Lead Scoring:</strong> Automated scoring based on engagement and fit</li>
+                        <li><strong>Qualification:</strong> BANT (Budget, Authority, Need, Timeline) assessment</li>
+                        <li><strong>Conversion:</strong> Create Account (company), Contact (person), Opportunity (deal)</li>
+                    </ul>
+
+                    <h3>💼 Opportunity Management</h3>
+                    <p>Complex B2B deals require structured opportunity tracking:</p>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Stage Management:</strong> Qualification → Proposal → Negotiation → Closed Won/Lost</li>
+                        <li><strong>Product Configuration:</strong> Multiple products per opportunity with custom pricing</li>
+                        <li><strong>Stakeholder Management:</strong> Multiple contacts involved in buying decisions</li>
+                        <li><strong>Activity Tracking:</strong> Meetings, calls, emails, and tasks</li>
+                    </ul>
+
+                    <h3>📊 Account-Based Selling</h3>
+                    <p>B2B sales focus on account relationships rather than individual transactions:</p>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Account Hierarchy:</strong> Parent-child account relationships</li>
+                        <li><strong>Multiple Contacts:</strong> Decision makers, influencers, users</li>
+                        <li><strong>Cross-sell/Up-sell:</strong> Multiple opportunities per account</li>
+                        <li><strong>Long Sales Cycles:</strong> Extended nurturing and relationship building</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div id="notes" class="section">
+                <div class="card">
+                    <h2>📝 Architecture Notes</h2>
+                    
+                    <h3>🔧 Design Principles</h3>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Data Integrity:</strong> Mandatory fields ensure minimum viable data quality</li>
+                        <li><strong>Relationship Hierarchy:</strong> Account-centric model supports complex B2B structures</li>
+                        <li><strong>Flexible Pricing:</strong> Multiple price books support different customer segments</li>
+                        <li><strong>Activity Tracking:</strong> Comprehensive audit trail of all customer interactions</li>
+                    </ul>
+
+                    <h3>⚠️ Key Considerations</h3>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Governor Limits:</strong> Consider SOQL query limits in complex hierarchies</li>
+                        <li><strong>Sharing Model:</strong> Role hierarchy and sharing rules affect data visibility</li>
+                        <li><strong>Validation Rules:</strong> Business logic enforcement through validation</li>
+                        <li><strong>Process Automation:</strong> Workflow rules, process builder, and flows</li>
+                    </ul>
+
+                    <h3>📈 Scalability Recommendations</h3>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>Large Data Volumes:</strong> Consider archiving strategies for old data</li>
+                        <li><strong>Complex Products:</strong> Use Product2 families and custom fields</li>
+                        <li><strong>Global Organizations:</strong> Multi-currency and localization support</li>
+                        <li><strong>Integration Points:</strong> APIs for external system connectivity</li>
+                    </ul>
+
+                    <h3>🔄 Integration Patterns</h3>
+                    <p>Common integration points for B2B organizations:</p>
+                    <ul style="margin: 15px 0; padding-left: 20px;">
+                        <li><strong>ERP Systems:</strong> Sync products, pricing, and orders</li>
+                        <li><strong>Marketing Automation:</strong> Lead scoring and nurturing</li>
+                        <li><strong>CPQ Tools:</strong> Configure, Price, Quote complex products</li>
+                        <li><strong>Customer Support:</strong> Case management and service history</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Salesforce B2B Data Model
+        const dataModel = {
+            objects: {
+                "Lead": {
+                    description: "Potential customers who haven't been qualified yet",
+                    api_name: "Lead",
+                    key_fields: ["FirstName", "LastName", "Company", "Email", "Phone", "Status"],
+                    mandatory_fields: ["LastName", "Company"]
+                },
+                "Account": {
+                    description: "Companies or organizations you do business with",
+                    api_name: "Account", 
+                    key_fields: ["Name", "Type", "Industry", "BillingAddress", "Phone", "Website"],
+                    mandatory_fields: ["Name"]
+                },
+                "Contact": {
+                    description: "Individual people associated with Accounts",
+                    api_name: "Contact",
+                    key_fields: ["FirstName", "LastName", "Email", "Phone", "Title", "AccountId"],
+                    mandatory_fields: ["LastName"]
+                },
+                "Opportunity": {
+                    description: "Potential sales deals being tracked",
+                    api_name: "Opportunity",
+                    key_fields: ["Name", "AccountId", "StageName", "CloseDate", "Amount", "Probability"],
+                    mandatory_fields: ["Name", "StageName", "CloseDate"]
+                },
+                "Product2": {
+                    description: "Products or services your organization sells",
+                    api_name: "Product2",
+                    key_fields: ["Name", "ProductCode", "Description", "Family", "IsActive"],
+                    mandatory_fields: ["Name"]
+                },
+                "Pricebook2": {
+                    description: "Collections of products and their prices",
+                    api_name: "Pricebook2",
+                    key_fields: ["Name", "IsActive", "Description"],
+                    mandatory_fields: ["Name"]
+                },
+                "PricebookEntry": {
+                    description: "Junction object linking Products to Pricebooks with pricing",
+                    api_name: "PricebookEntry",
+                    key_fields: ["Product2Id", "Pricebook2Id", "UnitPrice", "IsActive"],
+                    mandatory_fields: ["Product2Id", "Pricebook2Id", "UnitPrice"]
+                },
+                "OpportunityLineItem": {
+                    description: "Individual products/services on an Opportunity",
+                    api_name: "OpportunityLineItem",
+                    key_fields: ["OpportunityId", "PricebookEntryId", "Quantity", "UnitPrice", "TotalPrice"],
+                    mandatory_fields: ["OpportunityId", "PricebookEntryId"]
+                },
+                "Task": {
+                    description: "To-do items and activities",
+                    api_name: "Task",
+                    key_fields: ["Subject", "Status", "Priority", "ActivityDate", "WhoId", "WhatId"],
+                    mandatory_fields: ["Subject"]
+                },
+                "Event": {
+                    description: "Calendar events and meetings",
+                    api_name: "Event",
+                    key_fields: ["Subject", "StartDateTime", "EndDateTime", "WhoId", "WhatId"],
+                    mandatory_fields: ["Subject", "StartDateTime", "EndDateTime"]
+                },
+                "Campaign": {
+                    description: "Marketing campaigns and initiatives",
+                    api_name: "Campaign",
+                    key_fields: ["Name", "Type", "Status", "StartDate", "EndDate"],
+                    mandatory_fields: ["Name"]
+                },
+                "Case": {
+                    description: "Customer service cases and support requests",
+                    api_name: "Case",
+                    key_fields: ["Subject", "Status", "Priority", "AccountId", "ContactId"],
+                    mandatory_fields: ["Subject"]
+                }
+            },
+            relationships: [
+                {from: "Lead", to: "Account", type: "converts_to", cardinality: "1:1", description: "Lead converts to Account during qualification"},
+                {from: "Lead", to: "Contact", type: "converts_to", cardinality: "1:1", description: "Lead converts to Contact during qualification"},
+                {from: "Lead", to: "Opportunity", type: "converts_to", cardinality: "1:1", description: "Lead converts to Opportunity during qualification"},
+                {from: "Account", to: "Contact", type: "lookup", cardinality: "1:N", description: "Account can have multiple Contacts"},
+                {from: "Account", to: "Opportunity", type: "lookup", cardinality: "1:N", description: "Account can have multiple Opportunities"},
+                {from: "Opportunity", to: "Pricebook2", type: "lookup", cardinality: "N:1", description: "Opportunity references one Pricebook"},
+                {from: "Opportunity", to: "OpportunityLineItem", type: "master_detail", cardinality: "1:N", description: "Opportunity can have multiple line items"},
+                {from: "Product2", to: "PricebookEntry", type: "master_detail", cardinality: "1:N", description: "Product can exist in multiple Pricebooks"},
+                {from: "Pricebook2", to: "PricebookEntry", type: "master_detail", cardinality: "1:N", description: "Pricebook contains multiple Product entries"},
+                {from: "PricebookEntry", to: "OpportunityLineItem", type: "lookup", cardinality: "1:N", description: "PricebookEntry can be referenced by multiple OpportunityLineItems"},
+                {from: "Task", to: "Lead", type: "lookup", cardinality: "N:1", description: "Tasks can be related to Leads"},
+                {from: "Task", to: "Contact", type: "lookup", cardinality: "N:1", description: "Tasks can be related to Contacts"},
+                {from: "Task", to: "Account", type: "lookup", cardinality: "N:1", description: "Tasks can be related to Accounts"},
+                {from: "Task", to: "Opportunity", type: "lookup", cardinality: "N:1", description: "Tasks can be related to Opportunities"},
+                {from: "Event", to: "Lead", type: "lookup", cardinality: "N:1", description: "Events can be related to Leads"},
+                {from: "Event", to: "Contact", type: "lookup", cardinality: "N:1", description: "Events can be related to Contacts"},
+                {from: "Event", to: "Account", type: "lookup", cardinality: "N:1", description: "Events can be related to Accounts"},
+                {from: "Event", to: "Opportunity", type: "lookup", cardinality: "N:1", description: "Events can be related to Opportunities"},
+                {from: "Campaign", to: "Lead", type: "many_to_many", cardinality: "N:N", description: "Campaigns can have multiple Leads, Leads can be in multiple Campaigns"},
+                {from: "Campaign", to: "Contact", type: "many_to_many", cardinality: "N:N", description: "Campaigns can have multiple Contacts, Contacts can be in multiple Campaigns"},
+                {from: "Account", to: "Case", type: "lookup", cardinality: "1:N", description: "Account can have multiple Cases"},
+                {from: "Contact", to: "Case", type: "lookup", cardinality: "1:N", description: "Contact can have multiple Cases"}
+            ]
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            populateObjects();
+            populateRelationshipTable();
+            drawERD();
+            setupSearch();
+        });
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+        }
+
+        function populateObjects() {
+            const objectGrid = document.getElementById('objectGrid');
+            objectGrid.innerHTML = '';
+
+            Object.entries(dataModel.objects).forEach(([objectName, objectData]) => {
+                const objectCard = document.createElement('div');
+                objectCard.className = 'object-card';
+                objectCard.innerHTML = `
+                    <h3>${objectName}</h3>
+                    <div class="api-name">${objectData.api_name}</div>
+                    <p>${objectData.description}</p>
+                    
+                    <div class="field-list">
+                        <h4>Mandatory Fields:</h4>
+                        ${objectData.mandatory_fields.map(field => 
+                            `<span class="field-tag mandatory-field">${field}</span>`
+                        ).join('')}
+                        
+                        <h4 style="margin-top: 15px;">Key Fields:</h4>
+                        ${objectData.key_fields.filter(field => 
+                            !objectData.mandatory_fields.includes(field)
+                        ).map(field => 
+                            `<span class="field-tag">${field}</span>`
+                        ).join('')}
+                    </div>
+                `;
+                objectGrid.appendChild(objectCard);
+            });
+        }
+
+        function populateRelationshipTable() {
+            const tbody = document.querySelector('#relationshipTable tbody');
+            tbody.innerHTML = '';
+
+            dataModel.relationships.forEach(rel => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${rel.from}</strong></td>
+                    <td><strong>${rel.to}</strong></td>
+                    <td><span class="field-tag ${rel.type.replace('_', '-')}">${rel.type.replace('_', ' ')}</span></td>
+                    <td>${rel.cardinality}</td>
+                    <td>${rel.description}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function drawERD() {
+            const svg = document.getElementById('erdSvg');
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+            
+            // Clear existing content
+            svg.innerHTML = '';
+
+            // Define object positions in a logical layout
+            const objectPositions = {
+                'Lead': {x: 100, y: 50},
+                'Account': {x: 400, y: 150},
+                'Contact': {x: 700, y: 150},
+                'Opportunity': {x: 400, y: 300},
+                'Product2': {x: 700, y: 400},
+                'Pricebook2': {x: 400, y: 500},
+                'PricebookEntry': {x: 550, y: 450},
+                'OpportunityLineItem': {x: 550, y: 350},
+                'Task': {x: 100, y: 250},
+                'Event': {x: 100, y: 350},
+                'Campaign': {x: 100, y: 450},
+                'Case': {x: 700, y: 250}
+            };
+
+            // Draw relationships first (so they appear behind objects)
+            dataModel.relationships.forEach(rel => {
+                const fromPos = objectPositions[rel.from];
+                const toPos = objectPositions[rel.to];
+                
+                if (fromPos && toPos) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', fromPos.x + 60);
+                    line.setAttribute('y1', fromPos.y + 30);
+                    line.setAttribute('x2', toPos.x + 60);
+                    line.setAttribute('y2', toPos.y + 30);
+                    line.setAttribute('stroke', getRelationshipColor(rel.type));
+                    line.setAttribute('stroke-width', '2');
+                    line.setAttribute('opacity', '0.7');
+                    
+                    // Add arrow marker
+                    if (rel.type !== 'many_to_many') {
+                        line.setAttribute('marker-end', 'url(#arrowhead)');
+                    }
+                    
+                    svg.appendChild(line);
+                }
+            });
+
+            // Add arrow marker definition
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrowhead');
+            marker.setAttribute('markerWidth', '10');
+            marker.setAttribute('markerHeight', '7');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '3.5');
+            marker.setAttribute('orient', 'auto');
+            
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+            polygon.setAttribute('fill', '#666');
+            
+            marker.appendChild(polygon);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+
+            // Draw objects
+            Object.entries(objectPositions).forEach(([objectName, pos]) => {
+                const objData = dataModel.objects[objectName];
+                
+                // Object rectangle
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('x', pos.x);
+                rect.setAttribute('y', pos.y);
+                rect.setAttribute('width', '120');
+                rect.setAttribute('height', '60');
+                rect.setAttribute('rx', '8');
+                rect.setAttribute('fill', '#ffffff');
+                rect.setAttribute('stroke', '#667eea');
+                rect.setAttribute('stroke-width', '2');
+                rect.setAttribute('class', 'object-rect');
+                
+                // Object name text
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', pos.x + 60);
+                text.setAttribute('y', pos.y + 25);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('font-family', 'Segoe UI, sans-serif');
+                text.setAttribute('font-size', '12');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('fill', '#667eea');
+                text.textContent = objectName;
+                
+                // API name text
+                const apiText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                apiText.setAttribute('x', pos.x + 60);
+                apiText.setAttribute('y', pos.y + 45);
+                apiText.setAttribute('text-anchor', 'middle');
+                apiText.setAttribute('font-family', 'Courier New, monospace');
+                apiText.setAttribute('font-size', '10');
+                apiText.setAttribute('fill', '#666');
+                apiText.textContent = objData.api_name;
+                
+                svg.appendChild(rect);
+                svg.appendChild(text);
+                svg.appendChild(apiText);
+            });
+        }
+
+        function getRelationshipColor(type) {
+            const colors = {
+                'lookup': '#3498db',
+                'master_detail': '#e74c3c',
+                'many_to_many': '#f39c12',
+                'converts_to': '#2ecc71'
+            };
+            return colors[type] || '#666';
+        }
+
+        function setupSearch() {
+            const searchBox = document.getElementById('searchBox');
+            searchBox.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                performSearch(searchTerm);
+            });
+        }
+
+        function performSearch(searchTerm) {
+            if (!searchTerm) {
+                // Clear all highlights
+                document.querySelectorAll('.highlight').forEach(el => {
+                    el.outerHTML = el.innerHTML;
+                });
+                return;
+            }
+
+            // Search in objects
+            const objectCards = document.querySelectorAll('.object-card');
+            objectCards.forEach(card => {
+                const content = card.textContent.toLowerCase();
+                if (content.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    highlightText(card, searchTerm);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Search in relationships table
+            const tableRows = document.querySelectorAll('#relationshipTable tbody tr');
+            tableRows.forEach(row => {
+                const content = row.textContent.toLowerCase();
+                if (content.includes(searchTerm)) {
+                    row.style.display = 'table-row';
+                    highlightText(row, searchTerm);
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function highlightText(element, searchTerm) {
+            const walker = document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+
+            textNodes.forEach(textNode => {
+                const text = textNode.textContent;
+                const regex = new RegExp(searchTerm, 'gi');
+                if (regex.test(text)) {
+                    const highlightedText = text.replace(regex, `<span class="highlight">$&</span>`);
+                    const wrapper = document.createElement('span');
+                    wrapper.innerHTML = highlightedText;
+                    textNode.parentNode.replaceChild(wrapper, textNode);
+                }
+            });
+        }
+
+        // Make functions globally available
+        window.showSection = showSection;
+    </script>
+</body>
+</html>
